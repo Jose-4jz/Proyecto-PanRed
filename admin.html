@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PanRed - Panel de Administrador</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+    body { background-color: #3b6e9f; color: #ffffff; min-height: 100vh; }
+    header.navbar { background-color: #111111; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .logo { font-size: 1.3rem; font-weight: bold; color: #ffffff; }
+    .badge-admin { background-color: #ef4444; color: #ffffff; font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; margin-left: 8px; }
+    nav ul { display: flex; list-style: none; gap: 18px; }
+    nav a { color: #cccccc; text-decoration: none; font-size: 0.95rem; }
+    nav a:hover, nav a.active { color: #55aaff; }
+    .header-title { text-align: center; padding: 30px 20px 10px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px 20px 60px; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+    .admin-card { background: rgba(17, 24, 39, 0.5); border-radius: 8px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); height: fit-content; }
+    .admin-card h2 { font-size: 1.3rem; color: #55aaff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.9rem; margin-bottom: 6px; color: #f1f5f9; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #475569; border-radius: 4px; background-color: #1e293b; color: #ffffff; font-size: 0.95rem; }
+    .btn-admin { width: 100%; background-color: #55aaff; color: #111111; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+    .btn-despachar { background-color: #10b981; color: #ffffff; }
+    .btn-restaurar { background-color: #f59e0b; color: #111; }
+    .fila-atencion-lista { list-style: none; margin-top: 15px; }
+    .cliente-item { background-color: #1e293b; border-left: 4px solid #55aaff; padding: 12px 15px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .cliente-item.turno-actual { border-left-color: #10b981; background-color: rgba(16, 185, 129, 0.15); }
+    .cliente-info h4 { font-size: 1rem; color: #ffffff; }
+    .cliente-info p { font-size: 0.8rem; color: #94a3b8; }
+    .badge-turno { background-color: #334155; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo">🥖 PanRed <span class="badge-admin">ADMIN</span></div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Ver Sitio Público</a></li>
+        <li><a href="admin.html" class="active">Panel Admin</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="header-title">
+    <h1>⚙️ Vista de Administración de PanRed</h1>
+    <p>Sincronización en tiempo real de Pedidos Web, Fila y Gestión de Inventario</p>
+  </section>
+
+  <main class="container">
+    
+    <section class="admin-card">
+      <h2>➕ Registrar Cliente Presencial</h2>
+      <form id="form-fila" onsubmit="event.preventDefault(); agregarACola();">
+        <div class="form-group">
+          <label for="nombre-cliente">Nombre del Cliente:</label>
+          <input type="text" id="nombre-cliente" placeholder="Ej. Ana Gómez" required>
+        </div>
+
+        <div class="form-group">
+          <label for="tipo-pedido">Tipo de Solicitud:</label>
+          <select id="tipo-pedido">
+            <option value="Entrega de Pedido Web">Entrega de Pedido Web</option>
+            <option value="Compra Directa en Caja">Compra Directa en Caja</option>
+            <option value="Aclaración / Devolución">Aclaración / Devolución</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-admin">Agregar a Fila de Atención 📩</button>
+      </form>
+
+      <div style="margin-top: 20px;">
+        <h2>🛠️ Acciones de Fila e Inventario</h2>
+        <button type="button" class="btn-admin btn-despachar" onclick="despacharCliente()">Atender Siguiente Cliente (Baja) 🟢</button>
+        <button type="button" class="btn-admin btn-restaurar" onclick="restaurarStockAdmin()">🔄 Restaurar Stock de Pan (Tienda)</button>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>📋 Fila y Pedidos en Tiempo Real</h2>
+      <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 15px;">
+        Los pedidos web realizados en la tienda se agregan automáticamente al frente de esta lista.
+      </p>
+
+      <ul id="lista-fila" class="fila-atencion-lista"></ul>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    function getColaAdmin() {
+      const local = localStorage.getItem('panred_cola_admin');
+      if (!local) {
+        const inicial = [
+          { id: '#PR-101', nombre: "Carlos Mendoza", tipo: "Entrega Web - Domicilio", estatus: "En Preparación" },
+          { id: '#PR-102', nombre: "María Fernández", tipo: "Compra Directa en Caja", estatus: "En Preparación" }
+        ];
+        localStorage.setItem('panred_cola_admin', JSON.stringify(inicial));
+        return inicial;
+      }
+      return JSON.parse(local);
+    }
+
+    function renderizarFila() {
+      const cola = getColaAdmin();
+      const contenedor = document.getElementById('lista-fila');
+      contenedor.innerHTML = '';
+
+      if (cola.length === 0) {
+        contenedor.innerHTML = '<li style="color: #94a3b8; padding: 15px; text-align: center;">No hay clientes en la fila actualmente.</li>';
+        return;
+      }
+
+      cola.forEach((cliente, index) => {
+        const li = document.createElement('li');
+        li.className = `cliente-item ${index === 0 ? 'turno-actual' : ''}`;
+        li.innerHTML = `
+          <div class="cliente-info">
+            <h4>${index === 0 ? '🔔 ATENDIENDO AHORA: ' : ''}${cliente.nombre}</h4>
+            <p>Solicitud: ${cliente.tipo}</p>
+          </div>
+          <span class="badge-turno">${cliente.id}</span>
+        `;
+        contenedor.appendChild(li);
+      });
+    }
+
+    function agregarACola() {
+      const nombreInput = document.getElementById('nombre-cliente');
+      const tipoInput = document.getElementById('tipo-pedido');
+
+      if (!nombreInput.value.trim()) return;
+
+      const cola = getColaAdmin();
+      const nuevoId = '#PR-' + Math.floor(1000 + Math.random() * 9000);
+
+      cola.push({
+        id: nuevoId,
+        nombre: nombreInput.value.trim(),
+        tipo: tipoInput.value,
+        estatus: "En Preparación"
+      });
+
+      localStorage.setItem('panred_cola_admin', JSON.stringify(cola));
+      nombreInput.value = '';
+      renderizarFila();
+    }
+
+    function despacharCliente() {
+      const cola = getColaAdmin();
+      if (cola.length === 0) {
+        alert("La fila de atención está vacía.");
+        return;
+      }
+      const atendido = cola.shift();
+      localStorage.setItem('panred_cola_admin', JSON.stringify(cola));
+      alert(`✅ Se ha despachado con éxito a: ${atendido.nombre} (${atendido.id})`);
+      renderizarFila();
+    }
+
+    function restaurarStockAdmin() {
+      localStorage.removeItem('panred_inventario');
+      getInventario();
+      alert("✅ ¡Inventario reabastecido con éxito! Las existencias de pan y pasteles han vuelto al 100%.");
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderizarFila();
+    });
+  </script>
+</body>
+</html>

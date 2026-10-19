@@ -1,0 +1,131 @@
+/* ESTILOS DE MODAL Y SIMULACIÓN DE PAGO */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-card {
+  background: #1e293b;
+  border-radius: 8px;
+  max-width: 550px;
+  width: 100%;
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #475569;
+}
+
+.modal-card h2 {
+  color: #55aaff;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 10px;
+  font-size: 1.4rem;
+}
+
+.resumen-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.resumen-tabla th, .resumen-tabla td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+.resumen-tabla th {
+  color: #94a3b8;
+}
+
+.desglose-pago {
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.desglose-linea {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.desglose-linea.total-final {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4ade80;
+  border-top: 1px solid #334155;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-pago-exito {
+  flex: 1;
+  background-color: #10b981;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-pago-error {
+  flex: 1;
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-cerrar-modal {
+  width: 100%;
+  background-color: #475569;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.codigo-caja {
+  background: #0284c7;
+  color: #ffffff;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  margin: 15px 0;
+}
+
+.codigo-caja h3 {
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+}
