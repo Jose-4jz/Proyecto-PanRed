@@ -86,7 +86,7 @@
 <body>
 
   <header class="navbar">
-    <div class="logo">🥖 PanRed</div>
+    <div class="logo"> PanRed</div>
     <nav>
       <ul>
         <li><a href="index.html">Inicio</a></li>
@@ -104,7 +104,7 @@
   </header>
 
   <section class="header-title">
-    <h1>🥐 Catálogo de Productos Recién Horneados</h1>
+    <h1> Catálogo de Productos Recién Horneados</h1>
     <p>Revisa existencias en tiempo real, peso por pieza y procede al pago simulado</p>
   </section>
 
@@ -119,11 +119,11 @@
 
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn-filtro active" onclick="filtrarCatUI('todas', this)">Todas las Categorías</button>
-        <button class="btn-filtro" onclick="filtrarCatUI('salado', this)">🥖 Pan Salado</button>
-        <button class="btn-filtro" onclick="filtrarCatUI('dulce', this)">🍩 Pan Dulce</button>
-        <button class="btn-filtro" onclick="filtrarCatUI('madra', this)">🍞 Masa Madre</button>
-        <button class="btn-filtro" onclick="filtrarCatUI('reposteria', this)">🍰 Repostería</button>
-        <button class="btn-filtro" onclick="filtrarCatUI('paquetes', this)">📦 Paquetes</button>
+        <button class="btn-filtro" onclick="filtrarCatUI('salado', this)"> Pan Salado</button>
+        <button class="btn-filtro" onclick="filtrarCatUI('dulce', this)"> Pan Dulce</button>
+        <button class="btn-filtro" onclick="filtrarCatUI('madra', this)"> Masa Madre</button>
+        <button class="btn-filtro" onclick="filtrarCatUI('reposteria', this)"> Repostería</button>
+        <button class="btn-filtro" onclick="filtrarCatUI('paquetes', this)"> Paquetes</button>
       </div>
     </div>
 
@@ -132,8 +132,8 @@
       <section id="grid-productos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px;"></section>
 
       <aside class="card-standard" id="seccion-carrito" style="height: fit-content; position: sticky; top: 90px;">
-        <h2 style="font-size: 1.3rem; margin-bottom: 15px; color: #55aaff;">🛒 Resumen de Compra</h2>
-        <p id="modo-txt" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 10px;">Modo: 🛵 Envío a Domicilio</p>
+        <h2 style="font-size: 1.3rem; margin-bottom: 15px; color: #55aaff;"> Resumen de Compra</h2>
+        <p id="modo-txt" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 10px;">Modo:  Envío a Domicilio</p>
 
         <ul id="lista-carrito" style="list-style: none; max-height: 250px; overflow-y: auto; margin-bottom: 15px;"></ul>
 
@@ -154,7 +154,7 @@
   <!-- MODAL DE AUTENTICACIÓN ADAPTABLE (GLOBAL / CHECKOUT) -->
   <div class="modal-overlay" id="modal-auth">
     <div class="modal-card">
-      <h2 id="auth-modal-titulo">👤 Inicia Sesión en PanRed</h2>
+      <h2 id="auth-modal-titulo"> Inicia Sesión en PanRed</h2>
       <p id="auth-modal-desc" style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 15px;">
         Ingresa tus datos para continuar.
       </p>
@@ -175,7 +175,7 @@
   <!-- MODAL DE PAGO SIMULADO -->
   <div class="modal-overlay" id="modal-checkout">
     <div class="modal-card">
-      <h2>💳 Confirmación y Pago Simulado</h2>
+      <h2> Confirmación y Pago Simulado</h2>
       <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 10px;">Cliente: <strong id="m-cliente-nombre" style="color:#4ade80;">-</strong></p>
 
       <table class="resumen-tabla">
@@ -200,14 +200,14 @@
       <div id="pantalla-pago-botones">
         <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; text-align: center;">Simular respuesta de pasarela:</p>
         <div class="modal-acciones">
-          <button class="btn-pago-exito" onclick="procesarPago(true)">Simular Pago ACEPTADO ✅</button>
-          <button class="btn-pago-error" onclick="procesarPago(false)">Simular Pago RECHAZADO ❌</button>
+          <button class="btn-pago-exito" onclick="procesarPago(true)">Simular Pago ACEPTADO </button>
+          <button class="btn-pago-error" onclick="procesarPago(false)">Simular Pago RECHAZADO  /button>
         </div>
         <button class="btn-cerrar-modal" onclick="cerrarModalCheckout()">Cancelar / Seguir Comprando</button>
       </div>
 
       <div id="pantalla-confirmacion" style="display: none;">
-        <div style="text-align: center; color: #4ade80; font-size: 2rem; margin-bottom: 10px;">🎉 ¡Compra Confirmada!</div>
+        <div style="text-align: center; color: #4ade80; font-size: 2rem; margin-bottom: 10px;"> ¡Compra Confirmada!</div>
         <p style="font-size: 0.95rem; color: #cbd5e1; text-align: center;">Tu pedido ha sido guardado y transferido al panel del repartidor.</p>
 
         <div class="codigo-caja">
@@ -225,7 +225,7 @@
   <footer class="main-footer">
     <div class="footer-content">
       <div class="footer-col">
-        <h4>🥖 PanRed Inc.</h4>
+        <h4> PanRed Inc.</h4>
         <p>Plataforma hiperlocal de distribución de panadería y repostería artesanal.</p>
         <p>Proyecto Universitario - TESE 2026</p>
       </div>
@@ -238,13 +238,14 @@
       </div>
       <div class="footer-col">
         <h4>Métodos de Pago</h4>
-        <p>💳 Efectivo en entrega, Tarjetas de Débito/Crédito y Pago Digital.</p>
+        <p> Efectivo en entrega, Tarjetas de Débito/Crédito y Pago Digital.</p>
       </div>
     </div>
     <div class="footer-bottom">&copy; 2026 PanRed - Todos los derechos reservados.</div>
   </footer>
 
   <script src="app.js"></script>
+  <script src="cuenta-menu.js"></script>
   <script>
     let categoriaActiva = 'todas';
 
@@ -267,7 +268,7 @@
             <h3 style="font-size: 1.05rem; margin-bottom: 6px;">${prod.nombre}</h3>
             <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;"><strong>Peso:</strong> ${prod.pesoKg} kg | <strong>Masa:</strong> ${prod.masa}</p>
             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
-              <span class="badge badge-tanda">🔥 Tanda: ${prod.tanda}</span>
+              <span class="badge badge-tanda"> Tanda: ${prod.tanda}</span>
               <span class="badge badge-alergeno">${prod.alergenos}</span>
               <span class="badge ${prod.stock > 0 ? 'badge-stock' : ''}" style="${prod.stock === 0 ? 'background:#ef4444;color:#fff;' : ''}">
                 ${prod.stock > 0 ? 'Stock: ' + prod.stock + ' pzas' : 'AGOTADO'}
@@ -277,7 +278,7 @@
               <span style="font-size: 1.2rem; font-weight: bold; color: #55aaff;">$${prod.precio.toFixed(2)}</span>
               <button style="background: #55aaff; color: #111; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer;" 
                       onclick="agregarProductoUI('${prod.id}')" ${prod.stock === 0 ? 'disabled style="opacity:0.5"' : ''}>
-                Añadir 🛒
+                Añadir 
               </button>
             </div>
           </div>
@@ -321,7 +322,7 @@
       document.getElementById('peso-txt').innerText = `${tot.pesoTotalKg.toFixed(2)} kg`;
       document.getElementById('envio-txt').innerText = `$${tot.costoEnvio.toFixed(2)}`;
       document.getElementById('total-txt').innerText = `$${tot.totalFinal.toFixed(2)}`;
-      document.getElementById('modo-txt').innerText = `Modo: ${getModalidad() === 'domicilio' ? '🛵 Envío a Domicilio' : '🏪 Recoger en Sucursal'}`;
+      document.getElementById('modo-txt').innerText = `Modo: ${getModalidad() === 'domicilio' ? ' Envío a Domicilio' : ' Recoger en Sucursal'}`;
     }
 
     function agregarProductoUI(id) {
@@ -332,7 +333,7 @@
       const cantActual = itemInCart ? itemInCart.cantidad : 0;
 
       if (cantActual + 1 > prod.stock) {
-        alert(`⚠️ No hay suficientes existencias disponibles de "${prod.nombre}". Stock disponible: ${prod.stock}`);
+        alert(`No hay suficientes existencias disponibles de "${prod.nombre}". Stock disponible: ${prod.stock}`);
         return;
       }
 
@@ -351,7 +352,7 @@
 
       if (item) {
         if (delta > 0 && item.cantidad + 1 > prod.stock) {
-          alert(`⚠️ No puedes agregar más unidades. Supera las existencias actuales (${prod.stock} pzas).`);
+          alert(` No puedes agregar más unidades. Supera las existencias actuales (${prod.stock} pzas).`);
           return;
         }
         item.cantidad += delta;
@@ -395,9 +396,9 @@
 
       const user = getUsuarioSesion();
       if (!user) {
-        document.getElementById('auth-modal-titulo').innerText = "🛒 Inicia Sesión para Completar tu Pedido";
+        document.getElementById('auth-modal-titulo').innerText = " Inicia Sesión para Completar tu Pedido";
         document.getElementById('auth-modal-desc').innerText = "Necesitamos tu cuenta de cliente para asociar tu pedido, generar tu código PIN y transferirlo al repartidor.";
-        document.getElementById('auth-modal-btn').innerText = "Ingresar y Proceder al Pago 💳";
+        document.getElementById('auth-modal-btn').innerText = "Ingresar y Proceder al Pago ";
 
         document.getElementById('modal-auth').classList.add('active');
       } else {
@@ -462,7 +463,7 @@
 
     function procesarPago(exito) {
       if (!exito) {
-        alert('❌ Pago Rechazado por la pasarela de prueba. Tus existencias NO han sido modificadas y tu carrito se conserva.');
+        alert(' Pago Rechazado por la pasarela de prueba. Tus existencias NO han sido modificadas y tu carrito se conserva.');
         return;
       }
 
@@ -472,7 +473,7 @@
       for (let item of carrito) {
         const prod = inv.find(p => p.id === item.id);
         if (item.cantidad > prod.stock) {
-          alert(`❌ Error al procesar: El producto "${prod.nombre}" ya no cuenta con suficiente inventario.`);
+          alert(` Error al procesar: El producto "${prod.nombre}" ya no cuenta con suficiente inventario.`);
           return;
         }
       }

@@ -34,7 +34,7 @@
 <body>
 
   <header class="navbar">
-    <div class="logo">🥖 PanRed <span class="badge-admin">ADMIN</span></div>
+    <div class="logo"> PanRed <span class="badge-admin">ADMIN</span></div>
     <nav>
       <ul>
         <li><a href="index.html">Ver Sitio Público</a></li>
@@ -44,7 +44,7 @@
   </header>
 
   <section class="header-title">
-    <h1>⚙️ Vista de Administración de PanRed</h1>
+    <h1> Vista de Administración de PanRed</h1>
     <p>Sincronización en tiempo real de Pedidos Web, Fila y Gestión de Inventario</p>
   </section>
 
@@ -67,23 +67,34 @@
           </select>
         </div>
 
-        <button type="submit" class="btn-admin">Agregar a Fila de Atención 📩</button>
+        <button type="submit" class="btn-admin">Agregar a Fila de Atención </button>
       </form>
 
       <div style="margin-top: 20px;">
-        <h2>🛠️ Acciones de Fila e Inventario</h2>
-        <button type="button" class="btn-admin btn-despachar" onclick="despacharCliente()">Atender Siguiente Cliente (Baja) 🟢</button>
-        <button type="button" class="btn-admin btn-restaurar" onclick="restaurarStockAdmin()">🔄 Restaurar Stock de Pan (Tienda)</button>
+        <h2> Acciones de Fila e Inventario</h2>
+        <button type="button" class="btn-admin btn-despachar" onclick="despacharCliente()">Atender Siguiente Cliente (Baja) </button>
+        <button type="button" class="btn-admin btn-restaurar" onclick="restaurarStockAdmin()"> Restaurar Stock de Pan (Tienda)</button>
       </div>
     </section>
 
     <section class="admin-card">
-      <h2>📋 Fila y Pedidos en Tiempo Real</h2>
+      <h2> Fila y Pedidos en Tiempo Real</h2>
       <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 15px;">
         Los pedidos web realizados en la tienda se agregan automáticamente al frente de esta lista.
       </p>
 
       <ul id="lista-fila" class="fila-atencion-lista"></ul>
+    </section>
+	
+    <!-- NUEVO PANEL: GESTIÓN DE PEDIDOS WEB -->
+    <section class="admin-card">
+      <h2> Gestión de Pedidos Web</h2>
+
+      <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 15px;">
+        Consulta las compras de los clientes y actualiza su estado de preparación y entrega.
+      </p>
+
+      <div id="lista-pedidos-web"></div>
     </section>
 
   </main>
@@ -118,7 +129,7 @@
         li.className = `cliente-item ${index === 0 ? 'turno-actual' : ''}`;
         li.innerHTML = `
           <div class="cliente-info">
-            <h4>${index === 0 ? '🔔 ATENDIENDO AHORA: ' : ''}${cliente.nombre}</h4>
+            <h4>${index === 0 ? ' ATENDIENDO AHORA: ' : ''}${cliente.nombre}</h4>
             <p>Solicitud: ${cliente.tipo}</p>
           </div>
           <span class="badge-turno">${cliente.id}</span>
@@ -156,18 +167,173 @@
       }
       const atendido = cola.shift();
       localStorage.setItem('panred_cola_admin', JSON.stringify(cola));
-      alert(`✅ Se ha despachado con éxito a: ${atendido.nombre} (${atendido.id})`);
+      alert(` Se ha despachado con éxito a: ${atendido.nombre} (${atendido.id})`);
       renderizarFila();
     }
 
     function restaurarStockAdmin() {
       localStorage.removeItem('panred_inventario');
       getInventario();
-      alert("✅ ¡Inventario reabastecido con éxito! Las existencias de pan y pasteles han vuelto al 100%.");
+      alert(" ¡Inventario reabastecido con éxito! Las existencias de pan y pasteles han vuelto al 100%.");
     }
+	
+	
+    // ===================================================
+    // NUEVO: GESTIÓN DE ESTADOS DE PEDIDOS WEB
+    // ===================================================
+
+    function escaparHTMLAdmin(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[caracter]);
+    }
+
+    function renderizarPedidosWebAdmin() {
+      const pedidos = getHistorialPedidos();
+      const inventario = getInventario();
+      const contenedor = document.getElementById('lista-pedidos-web');
+
+      if (!contenedor) return;
+
+      contenedor.innerHTML = '';
+
+      if (pedidos.length === 0) {
+        contenedor.innerHTML = `
+          <p style="color: #94a3b8; text-align: center; padding: 15px;">
+            No hay pedidos web registrados.
+          </p>
+        `;
+        return;
+      }
+
+      const estadosDisponibles = [
+        'En Preparación',
+        'Listo para entregar',
+        'En camino',
+        'Entregado',
+        'Cancelado'
+      ];
+
+      pedidos.forEach(pedido => {
+        const tarjeta = document.createElement('div');
+
+        tarjeta.style.cssText = `
+          background: #1e293b;
+          border: 1px solid #475569;
+          border-radius: 8px;
+          padding: 15px;
+          margin-bottom: 15px;
+        `;
+
+        const productos = Array.isArray(pedido.items)
+          ? pedido.items.map(item => {
+              const producto = inventario.find(p => p.id === item.id);
+              const nombre = producto ? producto.nombre : (item.nombre || 'Producto');
+              return `${nombre} × ${item.cantidad || 1}`;
+            }).join('<br>')
+          : 'Sin información de productos';
+
+        const estadoActual = pedido.estatus || 'En Preparación';
+
+        tarjeta.innerHTML = `
+          <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <strong style="color:#55aaff;">
+              ${escaparHTMLAdmin(pedido.id)}
+            </strong>
+            <span style="font-size:0.85rem; color:#4ade80;">
+              ${escaparHTMLAdmin(estadoActual)}
+            </span>
+          </div>
+
+          <p style="margin-top:10px; font-size:0.9rem;">
+            Cliente: ${escaparHTMLAdmin(pedido.cliente)}
+          </p>
+
+          <p style="font-size:0.8rem; color:#94a3b8;">
+            Correo: ${escaparHTMLAdmin(pedido.email)}
+          </p>
+
+          <p style="font-size:0.8rem; color:#94a3b8;">
+            Fecha: ${escaparHTMLAdmin(pedido.fecha)}
+          </p>
+
+          <p style="margin-top:10px; font-size:0.85rem;">
+            <strong>Productos:</strong><br>
+            ${productos}
+          </p>
+
+          <p style="margin-top:10px;">
+            <strong>Total: $${Number(pedido.total || 0).toFixed(2)}</strong>
+          </p>
+
+          <div style="margin-top:15px;">
+            <label style="display:block; font-size:0.85rem; margin-bottom:6px;">
+              Cambiar estado del pedido:
+            </label>
+          </div>
+        `;
+
+        const selector = document.createElement('select');
+
+        selector.style.cssText = `
+          width:100%;
+          padding:10px;
+          background:#334155;
+          color:white;
+          border:1px solid #64748b;
+          border-radius:5px;
+          cursor:pointer;
+        `;
+
+        if (!estadosDisponibles.includes(estadoActual)) {
+          estadosDisponibles.unshift(estadoActual);
+        }
+
+        estadosDisponibles.forEach(estado => {
+          const opcion = document.createElement('option');
+          opcion.value = estado;
+          opcion.textContent = estado;
+          selector.appendChild(opcion);
+        });
+
+        selector.value = estadoActual;
+
+        selector.addEventListener('change', () => {
+          actualizarEstatusPedidoAdmin(pedido.id, selector.value);
+        });
+
+        tarjeta.appendChild(selector);
+        contenedor.appendChild(tarjeta);
+      });
+    }
+
+    function actualizarEstatusPedidoAdmin(idPedido, nuevoEstatus) {
+      const pedidos = getHistorialPedidos();
+
+      const pedido = pedidos.find(p => p.id === idPedido);
+
+      if (!pedido) {
+        alert('No se encontró el pedido seleccionado.');
+        return;
+      }
+
+      pedido.estatus = nuevoEstatus;
+
+      localStorage.setItem('panred_pedidos', JSON.stringify(pedidos));
+
+      renderizarPedidosWebAdmin();
+
+      alert(` El pedido ${idPedido} ahora está: ${nuevoEstatus}`);
+    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       renderizarFila();
+	  renderizarPedidosWebAdmin();
     });
   </script>
 </body>

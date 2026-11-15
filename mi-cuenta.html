@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PanRed - Mi Cuenta</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #3b6e9f;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cuenta-navbar {
+      background: #111111;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .cuenta-logo {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    .cuenta-navbar nav ul {
+      display: flex;
+      list-style: none;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .cuenta-navbar nav a {
+      color: #cccccc;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .cuenta-navbar nav a:hover,
+    .cuenta-navbar nav a.active {
+      color: #55aaff;
+    }
+
+    .cuenta-contenedor {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 35px 20px;
+      flex: 1;
+    }
+
+    .cuenta-bienvenida {
+      margin-bottom: 25px;
+    }
+
+    .cuenta-bienvenida h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .cuenta-bienvenida p {
+      color: #dbeafe;
+    }
+
+    .cuenta-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 25px;
+      align-items: start;
+    }
+
+    .cuenta-menu,
+    .cuenta-contenido {
+      background: rgba(17, 24, 39, 0.65);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .cuenta-menu h3 {
+      color: #55aaff;
+      margin-bottom: 15px;
+    }
+
+    .cuenta-menu button {
+      display: block;
+      width: 100%;
+      background: transparent;
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin-bottom: 5px;
+    }
+
+    .cuenta-menu button:hover,
+    .cuenta-menu button.active {
+      background: #1e293b;
+      color: #55aaff;
+    }
+
+    .cuenta-seccion h2 {
+      color: #55aaff;
+      margin-bottom: 10px;
+    }
+
+    .cuenta-descripcion {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .cuenta-pedido {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 7px;
+      padding: 17px;
+      margin-bottom: 15px;
+    }
+
+    .pedido-encabezado {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #475569;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pedido-numero {
+      color: #55aaff;
+      font-weight: bold;
+    }
+
+    .pedido-estado {
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    .pedido-productos {
+      margin: 12px 0;
+      padding-left: 20px;
+      color: #cbd5e1;
+    }
+
+    .pedido-productos li {
+      margin-bottom: 6px;
+    }
+
+    .pedido-total {
+      border-top: 1px solid #475569;
+      padding-top: 12px;
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+    }
+
+    .pedido-total span:last-child {
+      color: #4ade80;
+      font-size: 1.1rem;
+    }
+
+    .cuenta-vacio {
+      background: #1e293b;
+      border: 1px dashed #64748b;
+      padding: 25px;
+      text-align: center;
+      border-radius: 7px;
+      color: #cbd5e1;
+    }
+
+    .cuenta-boton {
+      display: inline-block;
+      background: #55aaff;
+      color: #111111;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 10px 16px;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+
+    .cuenta-dato {
+      background: #1e293b;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .cuenta-dato strong {
+      display: block;
+      color: #55aaff;
+      margin-bottom: 6px;
+    }
+
+    .cuenta-pendiente {
+      border-left: 4px solid #f59e0b;
+      background: #1e293b;
+      padding: 18px;
+      border-radius: 5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .cuenta-footer {
+      background: #111111;
+      color: #94a3b8;
+      text-align: center;
+      padding: 20px;
+      margin-top: auto;
+      font-size: 0.85rem;
+    }
+
+    .cuenta-no-sesion {
+      text-align: center;
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 750px) {
+      .cuenta-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .cuenta-navbar {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .cuenta-navbar nav ul {
+        justify-content: center;
+      }
+
+      .cuenta-bienvenida h1 {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="cuenta-navbar">
+    <div class="cuenta-logo"> PanRed</div>
+
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="productos.html">Productos</a></li>
+        <li><a href="panaderias.html">Panaderías</a></li>
+        <li><a href="servicios.html">Servicios</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+        <li><a href="nosotros.html">Nosotros</a></li>
+        <li id="user-nav-container"></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="cuenta-contenedor">
+
+    <div class="cuenta-bienvenida">
+      <h1>Mi cuenta</h1>
+      <p>Administra tus compras, pedidos y documentos de PanRed.</p>
+    </div>
+
+    <div id="cuenta-no-sesion" class="cuenta-no-sesion" style="display:none;">
+      <h2>Necesitas iniciar sesión</h2>
+      <p>Inicia sesión para consultar la información de tu cuenta y tus pedidos.</p>
+      <a href="productos.html" class="cuenta-boton">Ir a Productos</a>
+    </div>
+
+    <div class="cuenta-layout" id="cuenta-layout" style="display:none;">
+
+      <aside class="cuenta-menu">
+        <h3> Mi cuenta</h3>
+
+        <button class="active" onclick="mostrarSeccionCuenta('pedidos', this)">
+           Mis pedidos
+        </button>
+
+        <button onclick="mostrarSeccionCuenta('datos-facturacion', this)">
+          Datos de facturación
+        </button>
+		
+		<button onclick="mostrarSeccionCuenta('historial', this)">
+         Historial de compras
+        </button>
+
+        <button onclick="mostrarSeccionCuenta('facturas', this)">
+           Mis facturas
+        </button>
+
+        <button onclick="mostrarSeccionCuenta('informacion', this)">
+           Mi información
+        </button>
+      </aside>
+
+      <section class="cuenta-contenido">
+
+        <div class="cuenta-seccion" id="seccion-pedidos">
+          <h2> Mis pedidos</h2>
+
+          <p class="cuenta-descripcion">
+            Consulta las compras que has realizado en PanRed,
+            sus importes y el estado de cada pedido.
+          </p>
+
+          <div id="lista-mis-pedidos"></div>
+        </div>
+		
+		<div class="cuenta-seccion" id="seccion-historial" style="display:none;">
+        <h2> Historial de compras</h2>
+
+        <p class="cuenta-descripcion" >
+         Consulta tus compras anteriores, los productos adquiridos,
+         las fechas y los importes pagados.
+        </p>
+
+        <div id="lista-historial-compras"></div>
+        </div>
+
+        <div class="cuenta-seccion" id="seccion-facturas" style="display:none;">
+          <h2> Mis facturas</h2>
+
+          <p class="cuenta-descripcion">
+            Aquí podrás consultar los documentos de facturación
+            relacionados con tus compras.
+          </p>
+
+          <p class="cuenta-descripcion">
+            Consulta los pedidos entregados y genera o revisa sus documentos
+            demostrativos de facturación.
+          </p>
+
+          <div id="lista-facturas"></div>
+
+        </div>
+
+        <div class="cuenta-seccion" id="seccion-datos-facturacion" style="display:none;">
+
+  <h2> Datos de facturación</h2>
+
+  <p class="cuenta-descripcion">
+    Registra tus datos fiscales para utilizarlos al solicitar
+    un documento de facturación de tus compras.
+  </p>
+
+  <form id="form-datos-facturacion">
+
+    <div class="cuenta-dato">
+      <strong>RFC</strong>
+      <input
+        type="text"
+        id="fact-rfc"
+        maxlength="13"
+        pattern="[A-Z]{3,4}[0-9]{6}[A-Z0-9]{3}"
+        placeholder="Ej. XAXX010101000"
+        required>
+    </div>
+
+    <div class="cuenta-dato">
+      <strong>Nombre o razón social</strong>
+      <input
+        type="text"
+        id="fact-nombre"
+        maxlength="150"
+        placeholder="Nombre registrado fiscalmente"
+        required>
+    </div>
+
+    <div class="cuenta-dato">
+      <strong>Código postal fiscal</strong>
+      <input
+        type="text"
+        id="fact-cp"
+        maxlength="5"
+        pattern="[0-9]{5}"
+        placeholder="Ej. 55000"
+        required>
+    </div>
+
+    <div class="cuenta-dato">
+      <strong>Régimen fiscal</strong>
+      <input
+        type="text"
+        id="fact-regimen"
+        maxlength="120"
+        placeholder="Ej. 612 - Personas Físicas con Actividades Empresariales"
+        required>
+    </div>
+
+    <div class="cuenta-dato">
+      <strong>Uso del CFDI</strong>
+      <input
+        type="text"
+        id="fact-uso"
+        maxlength="100"
+        placeholder="Ej. G03 - Gastos en general"
+        required>
+    </div>
+
+    <button type="submit" class="cuenta-boton">
+      Guardar datos de facturación
+    </button>
+
+    <p id="estado-datos-facturacion" style="margin-top:15px;"></p>
+
+    </form>
+
+    <p class="cuenta-descripcion" style="margin-top:20px;">
+    Estos datos se almacenan localmente para la demostración académica
+    de PanRed. No se realiza ninguna validación ante el SAT.
+    </p>
+
+</div>
+
+        <div class="cuenta-seccion" id="seccion-informacion" style="display:none;">
+          <h2> Mi información</h2>
+
+          <p class="cuenta-descripcion">
+            Información de la cuenta con la que has iniciado sesión.
+          </p>
+
+          <div class="cuenta-dato">
+            <strong>Nombre del cliente</strong>
+            <span id="cuenta-nombre">-</span>
+          </div>
+
+          <div class="cuenta-dato">
+            <strong>Correo electrónico</strong>
+            <span id="cuenta-email">-</span>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="cuenta-footer">
+    2026 PanRed - Todos los derechos reservados.
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="cuenta-menu.js"></script>
+  <script src="facturacion.js"></script>
+
+  <script>
+    function mostrarSeccionCuenta(seccion, boton) {
+
+      document.querySelectorAll('.cuenta-seccion').forEach(elemento => {
+        elemento.style.display = 'none';
+      });
+
+      document.getElementById('seccion-' + seccion).style.display = 'block';
+
+      document.querySelectorAll('.cuenta-menu button').forEach(elemento => {
+        elemento.classList.remove('active');
+      });
+
+      boton.classList.add('active');
+    }
+
+    function mostrarPedidosCuenta(usuario) {
+
+      const contenedor = document.getElementById('lista-mis-pedidos');
+      const historial = getHistorialPedidos();
+      const inventario = getInventario();
+
+      contenedor.innerHTML = '';
+
+      const pedidosUsuario = historial.filter(pedido =>
+        pedido.email &&
+        usuario.email &&
+        pedido.email.toLowerCase() === usuario.email.toLowerCase()
+      );
+
+      if (pedidosUsuario.length === 0) {
+
+        const vacio = document.createElement('div');
+        vacio.className = 'cuenta-vacio';
+
+        const mensaje = document.createElement('p');
+        mensaje.textContent = 'Todav閾哸 no tienes pedidos registrados.';
+
+        const enlace = document.createElement('a');
+        enlace.href = 'productos.html';
+        enlace.className = 'cuenta-boton';
+        enlace.textContent = 'Explorar productos';
+
+        vacio.appendChild(mensaje);
+        vacio.appendChild(enlace);
+        contenedor.appendChild(vacio);
+
+        return;
+      }
+
+      pedidosUsuario.reverse().forEach(pedido => {
+
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'cuenta-pedido';
+
+        const encabezado = document.createElement('div');
+        encabezado.className = 'pedido-encabezado';
+
+        const numero = document.createElement('span');
+        numero.className = 'pedido-numero';
+        numero.textContent = 'Pedido: ' + (pedido.id || 'Sin número');
+
+        const estado = document.createElement('span');
+        estado.className = 'pedido-estado';
+        estado.textContent = pedido.estatus || 'Sin estado';
+
+        encabezado.appendChild(numero);
+        encabezado.appendChild(estado);
+
+        const fecha = document.createElement('p');
+        fecha.textContent = 'Fecha: ' + (
+          pedido.fecha
+            ? new Date(pedido.fecha).toLocaleString('es-MX')
+            : 'No disponible'
+        );
+
+        const modalidad = document.createElement('p');
+        modalidad.textContent = 'Entrega: ' +
+          (pedido.modo === 'domicilio' ? 'Envió a domicilio' : 'Recoger en sucursal');
+
+        const tituloProductos = document.createElement('p');
+        tituloProductos.style.marginTop = '12px';
+        tituloProductos.style.fontWeight = 'bold';
+        tituloProductos.textContent = 'Productos:';
+
+        const listaProductos = document.createElement('ul');
+        listaProductos.className = 'pedido-productos';
+
+        (pedido.items || []).forEach(item => {
+
+          const producto = inventario.find(p => p.id === item.id);
+
+          const elemento = document.createElement('li');
+
+          elemento.textContent =
+            (producto ? producto.nombre : 'Producto no disponible') +
+            ' Cantidad: ' + item.cantidad;
+
+          listaProductos.appendChild(elemento);
+        });
+
+        const total = document.createElement('div');
+        total.className = 'pedido-total';
+
+        const etiquetaTotal = document.createElement('span');
+        etiquetaTotal.textContent = 'Total pagado:';
+
+        const importe = document.createElement('span');
+        importe.textContent = '$' + Number(pedido.total || 0).toFixed(2);
+
+        total.appendChild(etiquetaTotal);
+        total.appendChild(importe);
+
+        tarjeta.appendChild(encabezado);
+        tarjeta.appendChild(fecha);
+        tarjeta.appendChild(modalidad);
+        tarjeta.appendChild(tituloProductos);
+        tarjeta.appendChild(listaProductos);
+        tarjeta.appendChild(total);
+
+        contenedor.appendChild(tarjeta);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const usuario = getUsuarioSesion();
+
+      if (!usuario) {
+        document.getElementById('cuenta-no-sesion').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('cuenta-layout').style.display = 'grid';
+
+      document.getElementById('cuenta-nombre').textContent =
+        usuario.nombre || 'No disponible';
+
+      document.getElementById('cuenta-email').textContent =
+        usuario.email || 'No disponible';
+
+      mostrarPedidosCuenta(usuario);
+    });
+  </script>
+
+<script>
+
+  function obtenerClaveDatosFacturacion(usuario) {
+    return 'panred_datos_facturacion_' +
+      encodeURIComponent(usuario.email.trim().toLowerCase());
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+
+    const usuario = getUsuarioSesion();
+
+    if (!usuario || !usuario.email) {
+      return;
+    }
+
+    const formulario = document.getElementById('form-datos-facturacion');
+
+    if (!formulario) {
+      return;
+    }
+
+    const campoRFC = document.getElementById('fact-rfc');
+    const campoNombre = document.getElementById('fact-nombre');
+    const campoCP = document.getElementById('fact-cp');
+    const campoRegimen = document.getElementById('fact-regimen');
+    const campoUso = document.getElementById('fact-uso');
+    const mensaje = document.getElementById('estado-datos-facturacion');
+
+    const clave = obtenerClaveDatosFacturacion(usuario);
+
+    // Recuperar datos previamente guardados
+    const datosGuardados = localStorage.getItem(clave);
+
+    if (datosGuardados) {
+
+      try {
+
+        const datos = JSON.parse(datosGuardados);
+
+        campoRFC.value = datos.rfc || '';
+        campoNombre.value = datos.nombre || '';
+        campoCP.value = datos.codigoPostal || '';
+        campoRegimen.value = datos.regimenFiscal || '';
+        campoUso.value = datos.usoCFDI || '';
+
+      } catch (error) {
+
+        mensaje.textContent = 'No fue posible recuperar los datos guardados.';
+
+      }
+
+    }
+
+    // Convertir RFC a mayúsculas
+    campoRFC.addEventListener('input', function () {
+      this.value = this.value.toUpperCase().trim();
+    });
+
+    // Guardar información
+    formulario.addEventListener('submit', function (evento) {
+
+      evento.preventDefault();
+
+      const datos = {
+
+        correo: usuario.email,
+
+        rfc: campoRFC.value.trim().toUpperCase(),
+
+        nombre: campoNombre.value.trim(),
+
+        codigoPostal: campoCP.value.trim(),
+
+        regimenFiscal: campoRegimen.value.trim(),
+
+        usoCFDI: campoUso.value.trim(),
+
+        fechaActualizacion: new Date().toISOString()
+
+      };
+
+      localStorage.setItem(clave, JSON.stringify(datos));
+
+      mensaje.textContent = 'Datos de facturación guardados correctamente.';
+
+    });
+
+  });
+
+</script>
+
+</body>
+</html>
