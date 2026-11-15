@@ -593,6 +593,220 @@
       });
     }
 
+    function normalizarCorreoHistorial(correo) {
+      return String(correo || '').trim().toLowerCase();
+    }
+
+    function parsearFechaHistorial(fecha) {
+      if (!fecha) return null;
+
+      const texto = String(fecha).trim();
+      const fechaLocal = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(.+))?$/);
+
+      if (fechaLocal) {
+        const dia = Number(fechaLocal[1]);
+        const mes = Number(fechaLocal[2]);
+        const anio = Number(fechaLocal[3]);
+        let hora = 0;
+        let minuto = 0;
+        let segundo = 0;
+
+        if (fechaLocal[4]) {
+          const tiempo = fechaLocal[4].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(.*))?$/);
+          if (!tiempo) return null;
+
+          hora = Number(tiempo[1]);
+          minuto = Number(tiempo[2]);
+          segundo = Number(tiempo[3] || 0);
+
+          const indicador = String(tiempo[4] || '').replace(/[.\s]/g, '').toLowerCase();
+          if (indicador === 'pm') {
+            if (hora < 1 || hora > 12) return null;
+            hora = hora % 12 + 12;
+          } else if (indicador === 'am') {
+            if (hora < 1 || hora > 12) return null;
+            hora %= 12;
+          } else if (indicador && (hora < 0 || hora > 23)) {
+            return null;
+          }
+        }
+
+        if (mes < 1 || mes > 12 || dia < 1 || dia > 31 ||
+            hora < 0 || hora > 23 || minuto < 0 || minuto > 59 ||
+            segundo < 0 || segundo > 59) {
+          return null;
+        }
+
+        const resultado = new Date(0);
+        resultado.setFullYear(anio, mes - 1, dia);
+        resultado.setHours(hora, minuto, segundo, 0);
+
+        if (resultado.getFullYear() !== anio ||
+            resultado.getMonth() !== mes - 1 ||
+            resultado.getDate() !== dia) {
+          return null;
+        }
+        return resultado;
+      }
+
+      const fechaISO = new Date(texto);
+      return Number.isNaN(fechaISO.getTime()) ? null : fechaISO;
+    }
+
+    function formatearFechaHistorial(fecha) {
+      const fechaConvertida = parsearFechaHistorial(fecha);
+      return fechaConvertida
+        ? fechaConvertida.toLocaleString('es-MX')
+        : 'No disponible';
+    }
+
+    function mostrarHistorialCompras(usuario) {
+      const contenedor = document.getElementById('lista-historial-compras');
+      if (!contenedor || !usuario || !usuario.email) return;
+
+      contenedor.innerHTML = '';
+
+      const correoUsuario = normalizarCorreoHistorial(usuario.email);
+      const inventario = getInventario();
+      const idsPedidos = new Set();
+      const compras = getHistorialPedidos().filter(pedido => {
+        if (normalizarCorreoHistorial(pedido.email) !== correoUsuario ||
+            pedido.id == null || String(pedido.id).trim() === '' ||
+            pedido.total == null || String(pedido.total).trim() === '') {
+          return false;
+        }
+
+        const total = Number(pedido.total);
+        const idPedido = String(pedido.id).trim();
+        if (!Number.isFinite(total) || idsPedidos.has(idPedido)) return false;
+
+        idsPedidos.add(idPedido);
+        return true;
+      });
+
+      if (compras.length === 0) {
+        const vacio = document.createElement('div');
+        vacio.className = 'cuenta-vacio';
+        vacio.textContent = 'Todavía no tienes historial de compras.';
+        contenedor.appendChild(vacio);
+        return;
+      }
+
+      const totalGastado = compras.reduce(
+        (total, pedido) => total + Number(pedido.total),
+        0
+      );
+      const compraReciente = compras[0];
+
+      const resumen = document.createElement('div');
+      resumen.style.display = 'grid';
+      resumen.style.gridTemplateColumns = 'repeat(auto-fit, minmax(180px, 1fr))';
+      resumen.style.gap = '12px';
+
+      const agregarIndicador = (etiqueta, valor) => {
+        const tarjeta = document.createElement('div');
+        tarjeta.className = 'cuenta-dato';
+
+        const titulo = document.createElement('strong');
+        titulo.textContent = etiqueta;
+
+        const dato = document.createElement('span');
+        dato.textContent = valor;
+
+        tarjeta.appendChild(titulo);
+        tarjeta.appendChild(dato);
+        resumen.appendChild(tarjeta);
+      };
+
+      agregarIndicador('Compras realizadas', String(compras.length));
+      agregarIndicador('Total gastado', '$' + totalGastado.toFixed(2));
+      agregarIndicador(
+        'Compra más reciente',
+        formatearFechaHistorial(compraReciente.fecha) +
+          ' · $' + Number(compraReciente.total).toFixed(2)
+      );
+      contenedor.appendChild(resumen);
+
+      const tituloProductos = document.createElement('h3');
+      tituloProductos.textContent = 'Productos adquiridos';
+      tituloProductos.style.margin = '22px 0 10px';
+      contenedor.appendChild(tituloProductos);
+
+      const cantidadesPorProducto = new Map();
+      compras.forEach(pedido => {
+        (Array.isArray(pedido.items) ? pedido.items : []).forEach(item => {
+          const cantidad = Number(item.cantidad);
+          if (!Number.isFinite(cantidad) || cantidad <= 0) return;
+
+          const producto = inventario.find(
+            entrada => String(entrada.id) === String(item.id)
+          );
+          const nombre = producto
+            ? producto.nombre
+            : (item.nombre || 'Producto no disponible');
+          cantidadesPorProducto.set(
+            nombre,
+            (cantidadesPorProducto.get(nombre) || 0) + cantidad
+          );
+        });
+      });
+
+      if (cantidadesPorProducto.size === 0) {
+        const sinProductos = document.createElement('p');
+        sinProductos.className = 'cuenta-descripcion';
+        sinProductos.textContent = 'No hay productos identificables en las compras registradas.';
+        contenedor.appendChild(sinProductos);
+      } else {
+        const listaProductos = document.createElement('ul');
+        listaProductos.className = 'pedido-productos';
+        cantidadesPorProducto.forEach((cantidad, nombre) => {
+          const producto = document.createElement('li');
+          producto.textContent = nombre + ': ' + cantidad + ' unidades';
+          listaProductos.appendChild(producto);
+        });
+        contenedor.appendChild(listaProductos);
+      }
+
+      const tituloRecientes = document.createElement('h3');
+      tituloRecientes.textContent = 'Compras recientes';
+      tituloRecientes.style.margin = '22px 0 10px';
+      contenedor.appendChild(tituloRecientes);
+
+      const tabla = document.createElement('table');
+      tabla.style.width = '100%';
+      tabla.style.borderCollapse = 'collapse';
+      tabla.style.background = '#1e293b';
+
+      const encabezado = document.createElement('thead');
+      const filaEncabezado = document.createElement('tr');
+      ['Fecha', 'Importe total'].forEach(texto => {
+        const celda = document.createElement('th');
+        celda.textContent = texto;
+        celda.style.padding = '10px';
+        celda.style.borderBottom = '1px solid #475569';
+        celda.style.textAlign = 'left';
+        filaEncabezado.appendChild(celda);
+      });
+      encabezado.appendChild(filaEncabezado);
+      tabla.appendChild(encabezado);
+
+      const cuerpo = document.createElement('tbody');
+      compras.slice(0, 5).forEach(pedido => {
+        const fila = document.createElement('tr');
+        [formatearFechaHistorial(pedido.fecha), '$' + Number(pedido.total).toFixed(2)]
+          .forEach(texto => {
+            const celda = document.createElement('td');
+            celda.textContent = texto;
+            celda.style.padding = '10px';
+            celda.style.borderBottom = '1px solid #475569';
+            fila.appendChild(celda);
+          });
+        cuerpo.appendChild(fila);
+      });
+      tabla.appendChild(cuerpo);
+      contenedor.appendChild(tabla);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
 
       const usuario = getUsuarioSesion();
@@ -611,6 +825,7 @@
         usuario.email || 'No disponible';
 
       mostrarPedidosCuenta(usuario);
+      mostrarHistorialCompras(usuario);
     });
   </script>
 

@@ -117,3 +117,61 @@ No utilizar la dirección IPv6, la puerta de enlace predeterminada ni la direcci
 ---
 
 **Nota de mantenimiento:** las direcciones IP, los puertos y las rutas de acceso deben verificarse cuando cambie la configuración del equipo. Esta guía utiliza como referencia el puerto `5500` y la dirección IPv4 `192.168.100.30`, correspondientes a una configuración anterior.
+
+# Actualización funcional de PanRed
+
+## Mejoras implementadas
+
+En esta versión de PanRed se realizaron diversas mejoras enfocadas en facilitar la navegación, mejorar la administración de la cuenta del usuario y ampliar las opciones de consulta de información.
+
+### 1. Acceso global al perfil del usuario
+Se mejoró la navegación para permitir que el usuario acceda al menú de su perfil desde las diferentes páginas del sistema.
+
+Anteriormente, este menú solamente estaba disponible desde la sección de Productos. Con esta mejora, el acceso a las opciones de la cuenta mantiene un comportamiento consistente en las distintas secciones de PanRed.
+
+### 2. Módulo de facturación demostrativa
+Se incorporó una funcionalidad para generar comprobantes de facturación con fines demostrativos.
+
+Entre sus características se encuentran:
+
+- Generación de comprobantes asociados a pedidos entregados.
+- Asignación de folios consecutivos.
+- Consulta de comprobantes previamente generados.
+- Prevención de generación de comprobantes duplicados para un mismo pedido.
+- Impresión y exportación del comprobante mediante la opción de guardar como PDF.
+
+**Nota:** Los comprobantes generados son exclusivamente demostrativos. No constituyen CFDI, no tienen validez fiscal y no están certificados por el SAT.
+
+### 3. Historial de compras
+Se implementó una sección de historial que permite consultar un resumen de la actividad de compra del usuario.
+
+La información presentada incluye:
+
+- Cantidad total de compras realizadas.
+- Importe total acumulado.
+- Fecha e importe de la compra más reciente.
+- Productos adquiridos y cantidades acumuladas.
+- Tabla con las cinco compras más recientes.
+
+La información se obtiene de los pedidos almacenados por el sistema y se filtra de acuerdo con el usuario que inició sesión.
+
+### 4. Diferenciación entre pedidos e historial de compras
+
+Se estableció una distinción entre las secciones:
+
+- **Mis pedidos:** permite consultar individualmente los pedidos, sus productos, importes y estados.
+- **Historial de compras:** presenta un resumen estadístico de las compras realizadas por el usuario.
+
+Esta separación evita duplicar información y permite que cada sección tenga una finalidad específica.
+
+## Consideraciones técnicas
+
+- Se reutilizaron las funciones existentes para recuperar la información de sesión, pedidos e inventario.
+- Se aprovechó el almacenamiento local del navegador (`localStorage`) para conservar los registros.
+- Se mantuvo la estructura general del proyecto y se evitaron modificaciones innecesarias en los módulos existentes.
+
+## Resultado
+
+Con estas mejoras, PanRed amplía las funcionalidades disponibles para el usuario, facilita el acceso a su información personal y proporciona nuevas herramientas para consultar sus compras y comprobantes.
+
+La actualización conserva el enfoque original del proyecto y aprovecha los componentes y datos existentes.
