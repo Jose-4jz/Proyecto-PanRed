@@ -44,6 +44,46 @@
     });
   }
 
+  function redondearMoneda(importe) {
+    return Math.round((Number(importe) + Number.EPSILON) * 100) / 100;
+  }
+
+  function pedidoTieneDatosDesglose(pedido) {
+    return typeof pedido.costoEnvio === 'number' &&
+      Number.isFinite(pedido.costoEnvio) &&
+      Array.isArray(pedido.items) &&
+      pedido.items.length > 0 &&
+      pedido.items.every(function (item) {
+        return item &&
+          typeof item.precioUnitario === 'number' &&
+          Number.isFinite(item.precioUnitario) &&
+          typeof item.cantidad === 'number' &&
+          Number.isFinite(item.cantidad) &&
+          item.cantidad > 0 &&
+          (item.tasaIVA === 0 || item.tasaIVA === 16);
+      });
+  }
+
+  function crearLineaFiscal(item) {
+    const cantidad = Number(item.cantidad);
+    const precioUnitario = redondearMoneda(item.precioUnitario);
+    const tasaIVA = Number(item.tasaIVA);
+    const importeTotal = redondearMoneda(precioUnitario * cantidad);
+    const baseGravable = tasaIVA === 0
+      ? importeTotal
+      : redondearMoneda(importeTotal / (1 + tasaIVA / 100));
+
+    return {
+      nombre: item.nombre || 'Producto',
+      cantidad: cantidad,
+      precioUnitario: precioUnitario,
+      tasaIVA: tasaIVA,
+      baseGravable: baseGravable,
+      iva: redondearMoneda(importeTotal - baseGravable),
+      importeTotal: importeTotal
+    };
+  }
+
   function escaparHTML(valor) {
     return String(valor == null ? '' : valor).replace(/[&<>"']/g, function (caracter) {
       return {
@@ -156,10 +196,15 @@
 
         const listaProductos = document.createElement('ul');
         listaProductos.className = 'pedido-productos';
-        (Array.isArray(pedido.items) ? pedido.items : []).forEach(function (item) {
-          const producto = inventario.find(function (entrada) {
-            return String(entrada.id) === String(item.id);
-          });
+        const itemsMostrados = facturaExistente && Array.isArray(facturaExistente.items)
+          ? facturaExistente.items
+          : (Array.isArray(pedido.items) ? pedido.items : []);
+        itemsMostrados.forEach(function (item) {
+          const producto = facturaExistente || item.nombre
+            ? null
+            : inventario.find(function (entrada) {
+                return String(entrada.id) === String(item.id);
+              });
           const elemento = document.createElement('li');
           elemento.textContent = (producto ? producto.nombre : (item.nombre || 'Producto')) +
             ' · Cantidad: ' + (item.cantidad || 1);
@@ -221,6 +266,10 @@
       alert('Solo puedes generar una factura cuando el pedido esté entregado.');
       return;
     }
+    if (!pedidoTieneDatosDesglose(pedidoActual)) {
+      alert('Este pedido no conserva los precios, tasas de IVA y costo de envío originales. No es posible generar un desglose fiscal fiable.');
+      return;
+    }
 
     let datosFiscales;
     let facturas;
@@ -248,16 +297,32 @@
       return;
     }
 
-    const inventario = getInventario();
-    const items = (Array.isArray(pedidoActual.items) ? pedidoActual.items : []).map(function (item) {
-      const producto = inventario.find(function (entrada) {
-        return String(entrada.id) === String(item.id);
-      });
-      return {
-        nombre: item.nombre || (producto && producto.nombre) || 'Producto',
-        cantidad: item.cantidad || 1
-      };
+    const items = pedidoActual.items.map(crearLineaFiscal);
+    const resumen = items.reduce(function (acumulado, item) {
+      if (item.tasaIVA === 0) {
+        acumulado.subtotalTasaCero += item.baseGravable;
+      } else {
+        acumulado.subtotalTasa16 += item.baseGravable;
+        acumulado.ivaTrasladado += item.iva;
+      }
+      return acumulado;
+    }, {
+      subtotalTasaCero: 0,
+      subtotalTasa16: 0,
+      ivaTrasladado: 0,
+      costoEnvio: redondearMoneda(pedidoActual.costoEnvio)
     });
+    resumen.subtotalTasaCero = redondearMoneda(resumen.subtotalTasaCero);
+    resumen.subtotalTasa16 = redondearMoneda(resumen.subtotalTasa16);
+    resumen.ivaTrasladado = redondearMoneda(resumen.ivaTrasladado);
+    resumen.totalDesglosado = redondearMoneda(
+      resumen.subtotalTasaCero + resumen.subtotalTasa16 +
+      resumen.ivaTrasladado + resumen.costoEnvio
+    );
+    if (resumen.totalDesglosado !== redondearMoneda(pedidoActual.total)) {
+      alert('El desglose calculado no coincide con el total original del pedido. No se generó la factura.');
+      return;
+    }
 
     const factura = {
       folio: siguienteFolio(facturas),
@@ -268,6 +333,7 @@
       modalidad: pedidoActual.modo || '',
       total: Number(pedidoActual.total || 0),
       items: items,
+      resumen: resumen,
       receptor: {
         rfc: datosFiscales.rfc,
         nombre: datosFiscales.nombre,
@@ -303,11 +369,51 @@
       return;
     }
 
+    const urlConsulta = new URL('consulta-factura.html', window.location.href);
+    urlConsulta.searchParams.set('folio', factura.folio);
+    const urlConsultaHTML = escaparHTML(urlConsulta.href);
     const receptor = factura.receptor || {};
-    const productos = (Array.isArray(factura.items) ? factura.items : []).map(function (item) {
+    const items = Array.isArray(factura.items) ? factura.items : [];
+    const resumen = factura.resumen;
+    const tieneDesgloseGuardado = Boolean(resumen &&
+      Number.isFinite(Number(resumen.subtotalTasaCero)) &&
+      Number.isFinite(Number(resumen.subtotalTasa16)) &&
+      Number.isFinite(Number(resumen.ivaTrasladado)) &&
+      Number.isFinite(Number(resumen.costoEnvio)) &&
+      items.length > 0 &&
+      items.every(function (item) {
+        return Number.isFinite(Number(item.precioUnitario)) &&
+          Number.isFinite(Number(item.tasaIVA)) &&
+          Number.isFinite(Number(item.baseGravable)) &&
+          Number.isFinite(Number(item.iva)) &&
+          Number.isFinite(Number(item.importeTotal));
+      }));
+    const productos = items.map(function (item) {
+      const datosFiscales = tieneDesgloseGuardado
+        ? '<td>' + formatoMoneda(item.precioUnitario) + '</td><td>' +
+          escaparHTML(item.tasaIVA) + '%</td><td>' +
+          formatoMoneda(item.baseGravable) + '</td><td>' +
+          formatoMoneda(item.iva) + '</td><td>' +
+          formatoMoneda(item.importeTotal) + '</td>'
+        : '<td>No disponible</td><td>No disponible</td><td>No disponible</td>' +
+          '<td>No disponible</td><td>No disponible</td>';
       return '<tr><td>' + escaparHTML(item.nombre) + '</td><td>' +
-        escaparHTML(item.cantidad) + '</td></tr>';
+        escaparHTML(item.cantidad) + '</td>' + datosFiscales + '</tr>';
     }).join('');
+    const resumenFiscal = tieneDesgloseGuardado
+      ? `<h2>Resumen fiscal</h2>
+    <table>
+      <tbody>
+        <tr><th>Subtotal de productos al 0 %</th><td>${formatoMoneda(resumen.subtotalTasaCero)}</td></tr>
+        <tr><th>Subtotal de productos al 16 % antes de IVA</th><td>${formatoMoneda(resumen.subtotalTasa16)}</td></tr>
+        <tr><th>IVA trasladado al 16 %</th><td>${formatoMoneda(resumen.ivaTrasladado)}</td></tr>
+        <tr><th>Costo de envío</th><td>${formatoMoneda(resumen.costoEnvio)}</td></tr>
+        <tr class="total-pedido"><th>Total del pedido</th><td>${formatoMoneda(factura.total)}</td></tr>
+      </tbody>
+    </table>`
+      : `<h2>Resumen fiscal</h2>
+    <p>No se guardó el desglose fiscal de esta factura; no es posible reconstruirlo con certeza.</p>
+    <table><tbody><tr class="total-pedido"><th>Total del pedido</th><td>${formatoMoneda(factura.total)}</td></tr></tbody></table>`;
     const modalidad = factura.modalidad === 'domicilio'
       ? 'Envío a domicilio'
       : 'Recoger en sucursal';
@@ -330,7 +436,12 @@
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { border: 1px solid #cbd5e1; padding: 11px; text-align: left; }
     th { background: #eff6ff; }
-    .importe { text-align: right; font-weight: bold; font-size: 20px; margin-top: 20px; }
+    .productos { table-layout: fixed; font-size: 11px; }
+    .productos th, .productos td { padding: 6px; overflow-wrap: anywhere; }
+    .total-pedido th, .total-pedido td { font-weight: bold; font-size: 18px; }
+    .consulta-qr { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #cbd5e1; }
+    #codigo-qr { min-width: 144px; min-height: 144px; padding: 8px; background: #fff; }
+    #codigo-qr img, #codigo-qr canvas { display: block; }
     .acciones { text-align: center; margin: 20px auto; }
     .acciones button { padding: 11px 18px; background: #245783; color: white; border: 0; border-radius: 5px; cursor: pointer; }
     @media print {
@@ -343,6 +454,7 @@
       .hoja { padding: 18px; }
       .encabezado { flex-direction: column; }
       .folio { text-align: left; }
+      .consulta-qr { flex-direction: column; text-align: center; }
     }
   </style>
 </head>
@@ -370,14 +482,59 @@
     <p><strong>Uso indicado:</strong> ${escaparHTML(receptor.usoCFDI)}</p>
     <h2>Productos del pedido</h2>
     <p><strong>Modalidad de entrega:</strong> ${escaparHTML(modalidad)}</p>
-    <table>
-      <thead><tr><th>Producto</th><th>Cantidad</th></tr></thead>
-      <tbody>${productos || '<tr><td colspan="2">Sin productos registrados</td></tr>'}</tbody>
+    <table class="productos">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio unitario con IVA incluido</th><th>Tasa de IVA</th><th>Base gravable</th><th>IVA incluido</th><th>Importe total de línea</th></tr></thead>
+      <tbody>${productos || '<tr><td colspan="7">Sin productos registrados</td></tr>'}</tbody>
     </table>
-    <p class="importe">Importe total del pedido: ${formatoMoneda(factura.total)}</p>
-    <p>Este comprobante es una simulación académica. No calcula ni desglosa impuestos y no tiene validez fiscal.</p>
-    <div class="acciones"><button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button></div>
+    ${resumenFiscal}
+    <p>Este comprobante es una simulación académica con desglose informativo de IVA. La clasificación es orientativa y no constituye una determinación fiscal oficial; no tiene validez fiscal.</p>
+    <section class="consulta-qr">
+      <div id="codigo-qr" data-url="${urlConsultaHTML}" aria-label="Código QR para consultar esta factura"></div>
+      <div>
+        <h2>Consulta de factura</h2>
+        <p>Escanea el código para consultar este comprobante con la cuenta propietaria.</p>
+        <p><a href="${urlConsultaHTML}">Abrir consulta de factura</a></p>
+        <p id="estado-qr" aria-live="polite"></p>
+      </div>
+    </section>
+    <div class="acciones"><button id="btn-imprimir" type="button" onclick="window.print()" disabled>Imprimir / Guardar como PDF</button></div>
   </main>
+  <script>
+    (function () {
+      var contenedor = document.getElementById('codigo-qr');
+      var estado = document.getElementById('estado-qr');
+      var botonImprimir = document.getElementById('btn-imprimir');
+      var biblioteca = document.createElement('script');
+      biblioteca.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      biblioteca.onload = function () {
+        if (typeof QRCode === 'undefined') {
+          estado.textContent = 'La biblioteca se cargó, pero no pudo generar el código QR.';
+          botonImprimir.disabled = false;
+          return;
+        }
+
+        try {
+          new QRCode(contenedor, {
+            text: contenedor.getAttribute('data-url'),
+            width: 144,
+            height: 144,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          estado.textContent = 'Código QR listo para consulta.';
+        } catch (error) {
+          console.error('No fue posible generar el código QR.', error);
+          estado.textContent = 'No fue posible generar el código QR.';
+        }
+        botonImprimir.disabled = false;
+      };
+      biblioteca.onerror = function () {
+        estado.textContent = 'No fue posible cargar la biblioteca para generar el código QR.';
+        botonImprimir.disabled = false;
+      };
+      estado.textContent = 'Cargando código QR...';
+      document.head.appendChild(biblioteca);
+    })();
+  </script>
 </body>
 </html>`;
 

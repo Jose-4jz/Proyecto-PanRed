@@ -3,11 +3,16 @@
    =================================================== */
 
 const INVENTARIO_INICIAL = [
-  { id: 'p1', nombre: 'Bolillo Crujiente (Paq 5pzas)', precio: 25.0, pesoKg: 0.35, cat: 'salado', stock: 40, img: 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=500&q=80', tanda: '6:30 PM', masa: 'Trigo Tradicional', alergenos: 'Gluten' },
-  { id: 'p2', nombre: 'Concha de Vainilla / Chocolate', precio: 12.0, pesoKg: 0.09, cat: 'dulce', stock: 25, img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80', tanda: '7:00 PM', masa: 'Bizcocho', alergenos: 'Lácteos, Huevo' },
-  { id: 'p3', nombre: 'Haza Pan Masa Madre', precio: 85.0, pesoKg: 0.60, cat: 'madra', stock: 10, img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80', tanda: '8:00 AM', masa: 'Masa Madre', alergenos: 'Gluten' },
-  { id: 'p4', nombre: 'Pastel Individual de Frutos', precio: 65.0, pesoKg: 0.45, cat: 'reposteria', stock: 8, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'Pão de Jó', alergenos: 'Lácteos, Huevo' },
-  { id: 'p5', nombre: 'Charola Mixta Reunión (12 pzas)', precio: 130.0, pesoKg: 1.20, cat: 'paquetes', stock: 5, img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500&q=80', tanda: 'Bajo Pedido', masa: 'Variadas', alergenos: 'Gluten, Huevo' }
+  { id: 'p1', nombre: 'Bolillo Crujiente (Paq 5pzas)', precio: 25.0, pesoKg: 0.35, cat: 'salado', stock: 40, img: 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=500&q=80', tanda: '6:30 PM', masa: 'Trigo Tradicional', alergenos: 'Gluten', tasaIVA: 0 },
+  { id: 'p2', nombre: 'Concha de Vainilla / Chocolate', precio: 12.0, pesoKg: 0.09, cat: 'dulce', stock: 25, img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80', tanda: '7:00 PM', masa: 'Bizcocho', alergenos: 'Lácteos, Huevo', tasaIVA: 0 },
+  { id: 'p3', nombre: 'Haza Pan Masa Madre', precio: 85.0, pesoKg: 0.60, cat: 'madra', stock: 10, img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80', tanda: '8:00 AM', masa: 'Masa Madre', alergenos: 'Gluten', tasaIVA: 0 },
+  { id: 'p4', nombre: 'Pastel Individual de Frutos', precio: 65.0, pesoKg: 0.45, cat: 'reposteria', stock: 8, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'Pão de Jó', alergenos: 'Lácteos, Huevo', tasaIVA: 0 },
+  { id: 'p5', nombre: 'Charola Mixta Reunión (12 pzas)', precio: 130.0, pesoKg: 1.20, cat: 'paquetes', stock: 5, img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=500&q=80', tanda: 'Bajo Pedido', masa: 'Variadas', alergenos: 'Gluten, Huevo', tasaIVA: 0 },
+  { id: 'p6', nombre: 'Leche envasada', precio: 28.0, pesoKg: 1.0, cat: 'bebidas', stock: 30, img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'No aplica', alergenos: 'Lácteos', tasaIVA: 0 },
+  { id: 'p7', nombre: 'Refresco embotellado', precio: 22.0, pesoKg: 0.6, cat: 'bebidas', stock: 30, img: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'No aplica', alergenos: 'No aplica', tasaIVA: 16 },
+  { id: 'p8', nombre: 'Jugo embotellado', precio: 25.0, pesoKg: 0.5, cat: 'bebidas', stock: 24, img: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'No aplica', alergenos: 'No aplica', tasaIVA: 16 },
+  { id: 'p9', nombre: 'Sándwich de jamón y queso', precio: 45.0, pesoKg: 0.25, cat: 'preparados', stock: 15, img: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'Pan de trigo', alergenos: 'Gluten, Lácteos', tasaIVA: 16 },
+  { id: 'p10', nombre: 'Baguette rellena', precio: 58.0, pesoKg: 0.35, cat: 'preparados', stock: 12, img: 'https://images.unsplash.com/photo-1600454309261-3dc9b7597637?auto=format&fit=crop&w=500&q=80', tanda: 'Continuo', masa: 'Baguette de trigo', alergenos: 'Gluten', tasaIVA: 16 }
 ];
 
 /* --- INVENTARIO Y CARRITO --- */
@@ -17,7 +22,22 @@ function getInventario() {
     localStorage.setItem('panred_inventario', JSON.stringify(INVENTARIO_INICIAL));
     return INVENTARIO_INICIAL;
   }
-  return JSON.parse(local);
+
+  const inventario = JSON.parse(local);
+  let actualizado = false;
+  INVENTARIO_INICIAL.forEach(productoInicial => {
+    const productoGuardado = inventario.find(producto => producto.id === productoInicial.id);
+    if (!productoGuardado) {
+      inventario.push({ ...productoInicial });
+      actualizado = true;
+    } else if (productoGuardado.tasaIVA === undefined) {
+      productoGuardado.tasaIVA = productoInicial.tasaIVA;
+      actualizado = true;
+    }
+  });
+
+  if (actualizado) saveInventario(inventario);
+  return inventario;
 }
 
 function saveInventario(inv) {
@@ -117,6 +137,21 @@ function getHistorialPedidos() {
 function guardarNuevoPedido(numPedido, pin, total, items, modo) {
   const usuario = getUsuarioSesion();
   const pedidos = getHistorialPedidos();
+  const inventario = getInventario();
+  const costoEnvio = calcularTotales().costoEnvio;
+  const itemsConDatosFiscales = items.map(item => {
+    const producto = inventario.find(entrada => entrada.id === item.id);
+    if (!producto) {
+      throw new Error(`No se encontró el producto "${item.id}" al guardar el pedido.`);
+    }
+
+    return {
+      ...item,
+      nombre: producto.nombre,
+      precioUnitario: producto.precio,
+      tasaIVA: producto.tasaIVA
+    };
+  });
   
   const nuevoPedido = {
     id: numPedido,
@@ -124,8 +159,9 @@ function guardarNuevoPedido(numPedido, pin, total, items, modo) {
     cliente: usuario ? usuario.nombre : "Invitado",
     email: usuario ? usuario.email : "invitado@panred.com",
     total: total,
+    costoEnvio: costoEnvio,
     modo: modo,
-    items: items,
+    items: itemsConDatosFiscales,
     fecha: new Date().toLocaleString('es-MX'),
     estatus: "En Preparación"
   };

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de factura - PanRed</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #3b6e9f; color: #1f2937; font-family: Arial, Helvetica, sans-serif; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 15px 30px; background: #111; color: #fff; }
+    .logo { color: #fff; font-size: 1.3rem; font-weight: bold; text-decoration: none; }
+    .navbar nav { display: flex; gap: 18px; flex-wrap: wrap; }
+    .navbar nav a { color: #ccc; text-decoration: none; }
+    .navbar nav a:hover { color: #55aaff; }
+    main { width: min(1050px, calc(100% - 32px)); margin: 32px auto; }
+    .card { padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); }
+    .mensaje { margin: 0 auto; max-width: 650px; color: #334155; text-align: center; }
+    .mensaje a { display: inline-block; margin-top: 14px; color: #245783; font-weight: bold; }
+    .factura h1, .factura h2 { color: #245783; }
+    .factura h1 { margin: 0; }
+    .factura h2 { margin: 24px 0 10px; font-size: 1.1rem; }
+    .encabezado { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 16px; border-bottom: 3px solid #3b6e9f; }
+    .folio { text-align: right; }
+    .folio p, .receptor p, .factura p { margin: 7px 0; line-height: 1.45; }
+    .aviso { margin: 20px 0; padding: 12px; border: 1px solid #fdba74; border-radius: 4px; background: #fff7ed; color: #9a3412; font-weight: bold; text-align: center; }
+    .tabla-contenedor { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; background: #fff; }
+    th, td { padding: 9px; border: 1px solid #cbd5e1; text-align: left; }
+    th { background: #eff6ff; }
+    .tabla-productos { min-width: 760px; font-size: .85rem; }
+    .total-pedido th, .total-pedido td { font-size: 1rem; font-weight: bold; }
+    .nota { margin-top: 18px !important; color: #475569; font-size: .9rem; }
+    @media (max-width: 600px) {
+      .navbar { align-items: flex-start; flex-direction: column; padding: 14px 18px; }
+      .navbar nav { gap: 12px; }
+      main { width: min(100% - 20px, 1050px); margin: 18px auto; }
+      .card { padding: 18px; }
+      .encabezado { flex-direction: column; }
+      .folio { text-align: left; }
+    }
+    @media print {
+      body { background: #fff; }
+      main { width: 100%; margin: 0; }
+      .navbar { display: none; }
+      .card { padding: 12px; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <a class="logo" href="index.html">PanRed</a>
+    <nav aria-label="Navegación principal">
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Productos</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="estado-consulta" class="card mensaje" role="status" aria-live="polite"></div>
+    <article id="factura-consultada" class="card factura" hidden>
+      <header class="encabezado">
+        <div>
+          <h1>PanRed</h1>
+          <p><strong>PanRed Comercializadora, S.A. de C.V.</strong></p>
+        </div>
+        <div class="folio">
+          <h2>FACTURA DEMOSTRATIVA</h2>
+          <p><strong>Folio:</strong> <span id="folio"></span></p>
+          <p><strong>Fecha de emisión:</strong> <span id="fecha-emision"></span></p>
+          <p><strong>Pedido original:</strong> <span id="pedido-original"></span></p>
+        </div>
+      </header>
+      <p class="aviso">DOCUMENTO DE DEMOSTRACIÓN · SIN VALIDEZ FISCAL · NO ES CFDI</p>
+
+      <section>
+        <h2>Datos fiscales del cliente</h2>
+        <div id="datos-receptor" class="receptor"></div>
+        <p><strong>Modalidad de entrega:</strong> <span id="modalidad"></span></p>
+      </section>
+
+      <section>
+        <h2>Productos del pedido</h2>
+        <div class="tabla-contenedor">
+          <table class="tabla-productos">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio unitario con IVA incluido</th>
+                <th>Tasa de IVA</th>
+                <th>Base gravable</th>
+                <th>IVA incluido</th>
+                <th>Importe total de línea</th>
+              </tr>
+            </thead>
+            <tbody id="productos-factura"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Resumen fiscal</h2>
+        <p id="aviso-desglose" hidden>No se guardó el desglose fiscal de esta factura; no es posible reconstruirlo con certeza.</p>
+        <div class="tabla-contenedor">
+          <table>
+            <tbody id="resumen-fiscal"></tbody>
+          </table>
+        </div>
+      </section>
+      <p class="nota">Este comprobante es una simulación académica con desglose informativo de IVA. La clasificación es orientativa y no constituye una determinación fiscal oficial; no tiene validez fiscal.</p>
+    </article>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    function normalizarCorreoConsulta(correo) {
+      return String(correo || '').trim().toLowerCase();
+    }
+
+    function formatoMonedaConsulta(importe) {
+      return Number(importe || 0).toLocaleString('es-MX', {
+        style: 'currency',
+        currency: 'MXN'
+      });
+    }
+
+    function mostrarMensajeConsulta(mensaje, mostrarEnlaceLogin) {
+      var estado = document.getElementById('estado-consulta');
+      estado.textContent = mensaje;
+      if (mostrarEnlaceLogin) {
+        var enlace = document.createElement('a');
+        enlace.href = 'productos.html?action=login';
+        enlace.textContent = 'Ir a iniciar sesión';
+        estado.appendChild(document.createElement('br'));
+        estado.appendChild(enlace);
+      }
+    }
+
+    function agregarCampoReceptor(contenedor, etiqueta, valor) {
+      var linea = document.createElement('p');
+      var titulo = document.createElement('strong');
+      titulo.textContent = etiqueta + ': ';
+      linea.appendChild(titulo);
+      linea.appendChild(document.createTextNode(valor || 'No disponible'));
+      contenedor.appendChild(linea);
+    }
+
+    function agregarFilaResumen(contenedor, etiqueta, importe, total) {
+      var fila = document.createElement('tr');
+      if (total) fila.className = 'total-pedido';
+      var nombre = document.createElement('th');
+      nombre.scope = 'row';
+      nombre.textContent = etiqueta;
+      var valor = document.createElement('td');
+      valor.textContent = formatoMonedaConsulta(importe);
+      fila.appendChild(nombre);
+      fila.appendChild(valor);
+      contenedor.appendChild(fila);
+    }
+
+    function facturaTieneDesgloseGuardado(factura) {
+      var resumen = factura.resumen;
+      var items = Array.isArray(factura.items) ? factura.items : [];
+      return Boolean(resumen &&
+        Number.isFinite(Number(resumen.subtotalTasaCero)) &&
+        Number.isFinite(Number(resumen.subtotalTasa16)) &&
+        Number.isFinite(Number(resumen.ivaTrasladado)) &&
+        Number.isFinite(Number(resumen.costoEnvio)) &&
+        items.length > 0 &&
+        items.every(function (item) {
+          return Number.isFinite(Number(item.precioUnitario)) &&
+            Number.isFinite(Number(item.tasaIVA)) &&
+            Number.isFinite(Number(item.baseGravable)) &&
+            Number.isFinite(Number(item.iva)) &&
+            Number.isFinite(Number(item.importeTotal));
+        }));
+    }
+
+    function mostrarFacturaGuardada(factura) {
+      var articulo = document.getElementById('factura-consultada');
+      var estado = document.getElementById('estado-consulta');
+      var receptor = factura.receptor || {};
+      var productos = document.getElementById('productos-factura');
+      var resumen = document.getElementById('resumen-fiscal');
+      var tieneDesglose = facturaTieneDesgloseGuardado(factura);
+
+      estado.hidden = true;
+      articulo.hidden = false;
+      document.getElementById('folio').textContent = factura.folio || 'No disponible';
+      var fecha = factura.fechaEmision ? new Date(factura.fechaEmision) : null;
+      document.getElementById('fecha-emision').textContent = fecha && !isNaN(fecha.getTime())
+        ? fecha.toLocaleString('es-MX')
+        : (factura.fechaEmision || 'No disponible');
+      document.getElementById('pedido-original').textContent = factura.pedidoId || 'No disponible';
+      document.getElementById('modalidad').textContent = factura.modalidad === 'domicilio'
+        ? 'Envío a domicilio'
+        : 'Recoger en sucursal';
+
+      agregarCampoReceptor(document.getElementById('datos-receptor'), 'Nombre o razón social', receptor.nombre);
+      agregarCampoReceptor(document.getElementById('datos-receptor'), 'RFC', receptor.rfc);
+      agregarCampoReceptor(document.getElementById('datos-receptor'), 'Código postal fiscal', receptor.codigoPostal);
+      agregarCampoReceptor(document.getElementById('datos-receptor'), 'Régimen fiscal', receptor.regimenFiscal);
+      agregarCampoReceptor(document.getElementById('datos-receptor'), 'Uso indicado', receptor.usoCFDI);
+
+      (Array.isArray(factura.items) ? factura.items : []).forEach(function (item) {
+        var fila = document.createElement('tr');
+        var valores = [
+          item.nombre || 'Producto',
+          item.cantidad == null ? 'No disponible' : String(item.cantidad),
+          tieneDesglose ? formatoMonedaConsulta(item.precioUnitario) : 'No disponible',
+          tieneDesglose ? String(item.tasaIVA) + '%' : 'No disponible',
+          tieneDesglose ? formatoMonedaConsulta(item.baseGravable) : 'No disponible',
+          tieneDesglose ? formatoMonedaConsulta(item.iva) : 'No disponible',
+          tieneDesglose ? formatoMonedaConsulta(item.importeTotal) : 'No disponible'
+        ];
+        valores.forEach(function (texto) {
+          var celda = document.createElement('td');
+          celda.textContent = texto;
+          fila.appendChild(celda);
+        });
+        productos.appendChild(fila);
+      });
+
+      if (tieneDesglose) {
+        agregarFilaResumen(resumen, 'Subtotal de productos al 0 %', factura.resumen.subtotalTasaCero);
+        agregarFilaResumen(resumen, 'Subtotal de productos al 16 % antes de IVA', factura.resumen.subtotalTasa16);
+        agregarFilaResumen(resumen, 'IVA trasladado al 16 %', factura.resumen.ivaTrasladado);
+        agregarFilaResumen(resumen, 'Costo de envío', factura.resumen.costoEnvio);
+      } else {
+        document.getElementById('aviso-desglose').hidden = false;
+      }
+      agregarFilaResumen(resumen, 'Total del pedido', factura.total, true);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var usuario = getUsuarioSesion();
+      if (!usuario || !usuario.email) {
+        mostrarMensajeConsulta('Inicia sesión con la cuenta propietaria para consultar esta factura.', true);
+        return;
+      }
+
+      var folio = new URLSearchParams(window.location.search).get('folio');
+      if (!folio) {
+        mostrarMensajeConsulta('Factura no encontrada.');
+        return;
+      }
+
+      var facturas;
+      try {
+        var guardadas = localStorage.getItem('panred_facturas');
+        facturas = guardadas ? JSON.parse(guardadas) : [];
+        if (!Array.isArray(facturas)) {
+          throw new Error('El historial de facturas no tiene un formato válido.');
+        }
+      } catch (error) {
+        console.error('No fue posible leer las facturas guardadas.', error);
+        mostrarMensajeConsulta('No fue posible leer las facturas guardadas en este navegador.');
+        return;
+      }
+
+      var factura = facturas.find(function (entrada) {
+        return String(entrada.folio) === folio;
+      });
+      if (!factura) {
+        mostrarMensajeConsulta('Factura no encontrada.');
+        return;
+      }
+
+      if (normalizarCorreoConsulta(usuario.email) !== normalizarCorreoConsulta(factura.email)) {
+        mostrarMensajeConsulta('Acceso no autorizado para consultar esta factura.');
+        return;
+      }
+
+      mostrarFacturaGuardada(factura);
+    });
+  </script>
+</body>
+</html>
